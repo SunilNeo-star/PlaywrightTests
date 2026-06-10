@@ -31,16 +31,26 @@ public class BBCHomePage
 
     public async Task SearchAsync(string query)
     {
-        // Accept terms if the popup appears
-        var acceptButton = _page.GetByRole(AriaRole.Button, new() { Name = "Accept additional cookies" });
-        if (await acceptButton.IsVisibleAsync())
+        // Wait for page to fully load first
+        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        // Accept cookie popup if it appears — wait up to 5 seconds for it
+        var acceptButton = _page.GetByRole(AriaRole.Button,
+            new() { Name = "Accept additional cookies" });
+        try
         {
+            await acceptButton.WaitForAsync(new() { Timeout = 5000 });
             await acceptButton.ClickAsync();
         }
-        await SearchButton.ClickAsync();           // click to open the popup
-        await SearchBox.WaitForAsync();            // wait for popup to appear
-        await SearchBox.FillAsync(query);          // type in the search box
-        await SearchBox.PressAsync("Enter");       // press Enter
+        catch
+        {
+            // Popup didn't appear — that's fine, continue
+        }
+
+        await SearchButton.ClickAsync();
+        await SearchBox.WaitForAsync();
+        await SearchBox.FillAsync(query);
+        await SearchBox.PressAsync("Enter");
     }
 
     // --- ASSERTIONS (public — expose meaningful checks) ---
