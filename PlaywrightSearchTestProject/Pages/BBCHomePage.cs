@@ -34,7 +34,7 @@ public class BBCHomePage
         // Wait for page to fully load first
         await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        // Accept cookie popup if it appears — wait up to 5 seconds for it
+        // Accept cookie popup if it appears
         var acceptButton = _page.GetByRole(AriaRole.Button,
             new() { Name = "Accept additional cookies" });
         try
@@ -44,13 +44,14 @@ public class BBCHomePage
         }
         catch
         {
-            // Popup didn't appear — that's fine, continue
+            // Popup didn't appear — continue
         }
 
-        await SearchButton.ClickAsync();
-        await SearchBox.WaitForAsync();
-        await SearchBox.FillAsync(query);
-        await SearchBox.PressAsync("Enter");
+        // Navigate directly to search URL instead of clicking the search button
+        // This is more reliable in headless mode
+        var encodedQuery = Uri.EscapeDataString(query);
+        await _page.GotoAsync($"https://www.bbc.co.uk/search?q={encodedQuery}");
+        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
 
     // --- ASSERTIONS (public — expose meaningful checks) ---
