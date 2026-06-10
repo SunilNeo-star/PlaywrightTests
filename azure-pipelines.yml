@@ -6,10 +6,10 @@ pool:
 
 steps:
   - task: UseDotNet@2
-    displayName: 'Install .NET 8'
+    displayName: 'Install .NET 10'
     inputs:
       packageType: 'sdk'
-      version: '8.x'
+      version: '10.x'
 
   - script: dotnet restore
     displayName: 'Restore NuGet packages'
