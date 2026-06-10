@@ -17,7 +17,9 @@ steps:
   - script: dotnet build --no-restore
     displayName: 'Build project'
 
-  - script: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
+  - script: |
+      find . -name "playwright.ps1"
+      pwsh $(find . -name "playwright.ps1") install --with-deps
     displayName: 'Install Playwright browsers'
 
   - script: dotnet test --no-build --logger trx --results-directory TestResults
