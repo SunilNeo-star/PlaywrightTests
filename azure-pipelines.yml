@@ -1,0 +1,43 @@
+# This file tells Azure Pipelines how to run your tests
+
+trigger:
+  - main  # run this pipeline every time code is pushed to main branch
+
+pool:
+  vmImage: 'ubuntu-latest'  # use a Linux machine in the cloud (free tier)
+
+steps:
+  # Step 1 - Install .NET
+  - task: UseDotNet@2
+    displayName: 'Install .NET 10'
+    inputs:
+      packageType: 'sdk'
+      version: '10.x'
+
+  # Step 2 - Install dependencies (restore NuGet packages)
+  - script: dotnet restore
+    displayName: 'Restore NuGet packages'
+
+  # Step 3 - Build the project
+  - script: dotnet build --no-restore
+    displayName: 'Build project'
+
+  # Step 4 - Install Playwright CLI
+  - script: dotnet tool install --global Microsoft.Playwright.CLI
+    displayName: 'Install Playwright CLI'
+
+  # Step 5 - Install Playwright browsers
+  - script: playwright install --with-deps
+    displayName: 'Install Playwright browsers'
+
+  # Step 5 - Run the tests
+  - script: dotnet test --no-build --logger trx --results-directory TestResults
+    displayName: 'Run Playwright tests'
+
+  # Step 6 - Publish test results so Azure shows a nice report
+  - task: PublishTestResults@2
+    displayName: 'Publish test results'
+    inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: 'TestResults/*.trx'
+    condition: always()  # publish results even if tests fail
