@@ -1,0 +1,33 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET 10'
+    inputs:
+      packageType: 'sdk'
+      version: '10.x'
+
+  - script: dotnet restore
+    displayName: 'Restore NuGet packages'
+
+  - script: dotnet build --no-restore
+    displayName: 'Build project'
+
+  - script: |
+      find . -name "playwright.ps1"
+      pwsh $(find . -name "playwright.ps1") install --with-deps
+    displayName: 'Install Playwright browsers'
+
+  - script: dotnet test --no-build --logger trx --results-directory TestResults
+    displayName: 'Run Playwright tests'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results'
+    inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: 'TestResults/*.trx'
+    condition: always()
